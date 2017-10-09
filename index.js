@@ -3,7 +3,7 @@
 module.exports = ansiHTML
 
 // Reference to https://github.com/sindresorhus/ansi-regex
-var _regANSI = /(?:(?:\u001b\[)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/
+var _regANSI = /(?:(?:\u001b\[[0-9]*;*)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/
 
 var _defColors = {
   reset: ['fff', '000'], // [FOREGROUD_COLOR, BACKGROUND_COLOR]
@@ -59,9 +59,13 @@ function ansiHTML (text) {
   // Cache opened sequence.
   var ansiCodes = []
   // Replace with markup.
-  var ret = text.replace(/\033\[(\d+)*m/g, function (match, seq) {
+  var ret = text.replace(/\033\[(\d*;*\d+)*m/g, function (match, seq) {
+    if (seq.length == 4) {
+      seq = seq.substr(2)
+    }
     var ot = _openTags[seq]
     if (ot) {
+
       // If current sequence has been opened, close it.
       if (!!~ansiCodes.indexOf(seq)) { // eslint-disable-line no-extra-boolean-cast
         ansiCodes.pop()
